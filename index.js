@@ -11,10 +11,10 @@ app.use(express.static('dist'))
 const morgan = require('morgan');
 
 
-morgan.token('body', (req, res) => {
+morgan.token('body', (req) => {
     if (req.method === 'POST') {
         return JSON.stringify(req.body);
-        r
+
     } return;
 });
 app.use(express.json())
@@ -25,7 +25,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 
 
 const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
+
     if (error) {
         return response.status(400).send({ error: error.message })
     }
@@ -36,8 +36,10 @@ app.use(bodyParser.json())
 let now = new Date()
 app.use(cors())
 app.get('/notes', (request, response) => {
+
+    let notes = Book.countDocuments({})
     response.type('text/plain');
-    response.send(`<p>Phonebook has ${notes.length} people</p><br /><p>${now}</p>`)
+    response.send(`<p>Phonebook has ${notes} people</p><br /><p>${now}</p>`)
 })
 
 app.get('/api/persons', async (request, response, next) => {
@@ -54,7 +56,7 @@ app.get('/api/persons', async (request, response, next) => {
 app.delete(`/api/persons/:id`, (request, response, next) => {
     let id = request.params.id
     Book.findByIdAndDelete(id).then(res => {
-        response.status(204).end()
+        response.status(204).send(res)
     }).catch(err => {
         console.log(err)
         next(err)
@@ -65,10 +67,11 @@ app.delete(`/api/persons/:id`, (request, response, next) => {
 app.put('/api/persons/:id', async (request, response) => {
     let id = request.params.id
     console.log(id, request.body)
+
     try {
-        await book.validate();
+
         Book.findByIdAndUpdate(id, request.body, { new: true, runValidators: true, context: 'query' }).then(res => {
-            response.status(201).json(response.data)
+            response.status(201).json(res.data)
             console.log(request.body)
         })
     }
@@ -127,7 +130,7 @@ app.post('/api/persons', async (request, response) => {
 })
 
 
-
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
